@@ -8,16 +8,17 @@ Usage:
     batch.py --csv path/to/file.csv
 
 CSV columns:
-    prompt (required), domain, ratio, resolution, model, preset (all optional)
+    prompt (required), workflow, domain, ratio, resolution, model, preset (all optional)
 
-Domain column overrides ratio/resolution if specified (but explicit values override domain).
+Workflow column: Multi-step operations (generate_only, generate_and_edit, multi_variant)
+Domain column: Image type preset (landscape, portrait, product, ui, editorial, logo)
+Explicit ratio/resolution override both workflow and domain defaults.
 
 Example CSV:
-    prompt,domain,ratio,resolution
-    "coffee shop hero image",landscape,,
-    "team photo placeholder",portrait,,
-    "product shot on marble",product,4:3,2K
-    "ui mockup",ui,,
+    prompt,workflow,domain,ratio,resolution
+    "hero image",generate_and_edit,landscape,,
+    "photo series",multi_variant,,1:1,
+    "custom product",generate_only,product,4:3,2K
 """
 
 import argparse
@@ -28,6 +29,7 @@ from pathlib import Path
 
 from image_config import ImageConfig
 from domain import get_domain
+from workflow import get_workflow
 
 # Load config from config.json (single source of truth)
 def load_config():
@@ -91,12 +93,26 @@ def main():
                     errors.append(f"Row {i}: missing prompt")
                     continue
 
-                # Resolve domain and parameters
+                # Resolve workflow, domain, and parameters
+                workflow_name = row.get("workflow", "").strip() or None
+                workflow = None
                 domain_name = row.get("domain", "").strip() or None
                 domain = None
                 ratio = row.get("ratio", "").strip() or None
                 resolution = row.get("resolution", "").strip() or None
                 model = row.get("model", "").strip() or DEFAULT_MODEL
+
+                # If workflow specified, use its default domain (if any)
+                if workflow_name:
+                    try:
+                        workflow = get_workflow(workflow_name)
+                        # Workflows can suggest a domain via first step params
+                        if workflow.steps and "domain" in workflow.steps[0].params:
+                            if not domain_name:
+                                domain_name = workflow.steps[0].params["domain"]
+                    except ValueError as e:
+                        errors.append(f"Row {i}: {str(e).split(chr(10))[0]}")
+                        continue
 
                 # If domain specified, use its defaults (but allow explicit overrides)
                 if domain_name:
@@ -128,6 +144,7 @@ def main():
                 rows.append({
                     "row": i,
                     "prompt": prompt,
+                    "workflow": workflow_name,
                     "domain": domain_name,
                     "ratio": ratio,
                     "resolution": resolution,
