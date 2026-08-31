@@ -18,18 +18,18 @@ class TestImageConfigValid:
         """Default config should be valid"""
         config = ImageConfig()
         assert config.aspect_ratio == "1:1"
-        assert config.resolution == "1024x1024"
+        assert config.resolution == "1K"
         assert config.safety_filter == "on"
 
     def test_custom_valid_config(self):
         """Custom valid config should work"""
         config = ImageConfig(
             aspect_ratio="16:9",
-            resolution="2048x2048",
+            resolution="2K",
             safety_filter="off"
         )
         assert config.aspect_ratio == "16:9"
-        assert config.resolution == "2048x2048"
+        assert config.resolution == "2K"
         assert config.safety_filter == "off"
 
     def test_all_supported_aspect_ratios(self):
@@ -72,30 +72,25 @@ class TestImageConfigInvalid:
 class TestCostMultiplier:
     """Test resolution-based cost multiplier"""
 
-    def test_256x256_multiplier(self):
-        """256x256 should be 1.0x base"""
-        config = ImageConfig(resolution="256x256")
+    def test_512_multiplier(self):
+        """512 should be 0.5x base"""
+        config = ImageConfig(resolution="512")
+        assert config.get_cost_multiplier() == 0.5
+
+    def test_1k_multiplier(self):
+        """1K should be 1.0x base"""
+        config = ImageConfig(resolution="1K")
         assert config.get_cost_multiplier() == 1.0
 
-    def test_512x512_multiplier(self):
-        """512x512 should be 1.5x base"""
-        config = ImageConfig(resolution="512x512")
-        assert config.get_cost_multiplier() == 1.5
+    def test_2k_multiplier(self):
+        """2K should be 2.0x"""
+        config = ImageConfig(resolution="2K")
+        assert config.get_cost_multiplier() == 2.0
 
-    def test_1024x1024_multiplier(self):
-        """1024x1024 should be 2.5x base"""
-        config = ImageConfig(resolution="1024x1024")
-        assert config.get_cost_multiplier() == 2.5
-
-    def test_2048x2048_multiplier(self):
-        """2048x2048 should be 6.0x"""
-        config = ImageConfig(resolution="2048x2048")
-        assert config.get_cost_multiplier() == 6.0
-
-    def test_1024x1280_multiplier(self):
-        """1024x1280 should be 3.0x"""
-        config = ImageConfig(resolution="1024x1280")
-        assert config.get_cost_multiplier() == 3.0
+    def test_4k_multiplier(self):
+        """4K should be 4.0x"""
+        config = ImageConfig(resolution="4K")
+        assert config.get_cost_multiplier() == 4.0
 
 
 class TestToApiParams:
@@ -106,7 +101,7 @@ class TestToApiParams:
         config = ImageConfig()
         params = config.to_api_params()
         assert params["aspect_ratio"] == "1:1"
-        assert params["resolution"] == "1024x1024"
+        assert params["resolution"] == "1K"
         assert params["safety_filter"] is True
 
     def test_to_api_params_safety_off(self):
@@ -148,7 +143,7 @@ class TestConfigRepr:
         repr_str = repr(config)
         assert "ImageConfig" in repr_str
         assert "16:9" in repr_str
-        assert "1024x1024" in repr_str
+        assert "1K" in repr_str
 
 
 if __name__ == "__main__":

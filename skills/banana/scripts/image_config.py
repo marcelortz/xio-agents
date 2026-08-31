@@ -46,13 +46,13 @@ class ImageConfig:
     All values validated against config.json.
 
     Example:
-        config = ImageConfig(aspect_ratio="16:9", resolution="1024x1024")
+        config = ImageConfig(aspect_ratio="16:9", resolution="1K")
         # Raises ValueError if invalid
-        config.get_cost_multiplier()  # → 2.5
+        config.get_cost_multiplier()  # → 1.0
     """
 
     aspect_ratio: str = "1:1"
-    resolution: str = "1024x1024"
+    resolution: str = "1K"
     safety_filter: Literal["on", "off"] = "on"
 
     def __post_init__(self):
@@ -82,23 +82,18 @@ class ImageConfig:
         """
         Return cost multiplier based on resolution.
 
-        Base = 256x256 (1.0x)
-        Higher resolutions cost more (used by batch.py estimate_cost)
+        Base = 512 (1.0x), scales to 1K (1.0x), 2K (2.0x), 4K (4.0x)
 
         Returns:
             float: Multiplier to apply to base cost per image
         """
         multipliers = {
-            "256x256": 1.0,
-            "512x512": 1.5,
-            "768x768": 2.0,
-            "1024x1024": 2.5,
-            "1024x1280": 3.0,
-            "1280x1024": 3.0,
-            "2048x2048": 6.0,
-            "4096x4096": 12.0,
+            "512": 0.5,
+            "1K": 1.0,
+            "2K": 2.0,
+            "4K": 4.0,
         }
-        return multipliers.get(self.resolution, 2.5)
+        return multipliers.get(self.resolution, 1.0)
 
     def to_api_params(self) -> dict:
         """Convert to Gemini API parameters"""
