@@ -1,0 +1,18 @@
+{
+  "free_tier_images_per_month": 100,
+  "default_model": "gemini-3.1-flash-image-preview",
+  "supported_aspect_ratios": [
+    "1:1", "16:9", "9:16", "3:4", "4:3", "3:2", "2:3",
+    "21:9", "9:21", "5:4", "4:5", "1:2", "2:1"
+  ],
+  "supported_resolutions": [
+    "256x256", "512x512", "768x768", "1024x1024",
+    "1024x1280", "1280x1024"
+  ],
+  "pricing": {
+    "gemini-3.1-flash-image-preview": 0.001,
+    "gemini-2.5-flash": 0.0005,
+    "gemini-3-pro-image-preview": 0.0015
+  },
+  "free_tier_warning_threshold": 0.8
+}
