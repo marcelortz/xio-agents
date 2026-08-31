@@ -23,6 +23,8 @@ import json
 import sys
 from pathlib import Path
 
+from image_config import ImageConfig
+
 # Load config from config.json (single source of truth)
 def load_config():
     """Load Banana configuration from config.json"""
@@ -37,22 +39,25 @@ def load_config():
 
 CONFIG = load_config()
 
-# Legacy pricing for backward compatibility
-# (Now config.json is source of truth, but keeping for compatibility)
-PRICING = {
-    "gemini-3.1-flash-image-preview": {"512": 0.020, "1K": 0.039, "2K": 0.078, "4K": 0.156},
-    "gemini-2.5-flash-image": {"512": 0.020, "1K": 0.039},
-}
 DEFAULT_MODEL = CONFIG.get("default_model", "gemini-3.1-flash-image-preview")
 DEFAULT_RESOLUTION = "1K"
 DEFAULT_RATIO = "1:1"
 FREE_TIER_LIMIT = CONFIG.get("free_tier_images_per_month", 100)
 
 
-def estimate_cost(model, resolution):
-    """Estimate cost for a single image."""
-    model_pricing = PRICING.get(model, PRICING[DEFAULT_MODEL])
-    return model_pricing.get(resolution, model_pricing.get("1K", 0.039))
+def estimate_cost(model, config):
+    """Estimate cost for a single image using ImageConfig resolution multiplier.
+
+    Args:
+        model: Model ID (e.g., "gemini-3.1-flash-image-preview")
+        config: ImageConfig instance with validated resolution
+
+    Returns:
+        float: Estimated cost per image
+    """
+    base_cost = CONFIG.get("pricing", {}).get(model, 0.001)
+    multiplier = config.get_cost_multiplier()
+    return base_cost * multiplier
 
 
 def main():
@@ -82,13 +87,29 @@ def main():
                     errors.append(f"Row {i}: missing prompt")
                     continue
 
+                ratio = row.get("ratio", "").strip() or DEFAULT_RATIO
+                resolution = row.get("resolution", "").strip() or DEFAULT_RESOLUTION
+                model = row.get("model", "").strip() or DEFAULT_MODEL
+
+                # Validate configuration using ImageConfig
+                try:
+                    config = ImageConfig(
+                        aspect_ratio=ratio,
+                        resolution=resolution,
+                        safety_filter="on"
+                    )
+                except ValueError as e:
+                    errors.append(f"Row {i}: {str(e).split(chr(10))[0]}")
+                    continue
+
                 rows.append({
                     "row": i,
                     "prompt": prompt,
-                    "ratio": row.get("ratio", "").strip() or DEFAULT_RATIO,
-                    "resolution": row.get("resolution", "").strip() or DEFAULT_RESOLUTION,
-                    "model": row.get("model", "").strip() or DEFAULT_MODEL,
+                    "ratio": ratio,
+                    "resolution": resolution,
+                    "model": model,
                     "preset": row.get("preset", "").strip() or None,
+                    "_config": config,  # Internal: used for cost calculation
                 })
     except (csv.Error, UnicodeDecodeError) as e:
         print(json.dumps({"error": True, "message": f"Failed to parse CSV: {e}"}))
@@ -102,8 +123,8 @@ def main():
             sys.exit(1)
         print()
 
-    # Cost estimate
-    total_cost = sum(estimate_cost(r["model"], r["resolution"]) for r in rows)
+    # Cost estimate using ImageConfig multipliers
+    total_cost = sum(estimate_cost(r["model"], r["_config"]) for r in rows)
 
     # ← NEW: Check Free Tier Limits (from config.json)
     # See: skills/banana/references/cost-tracking.md
@@ -129,7 +150,9 @@ def main():
         print(f"⚠️  Proceeding despite exceeding Free Tier ({images_count} > {FREE_TIER_LIMIT})", file=sys.stderr)
 
     # Output structured JSON for Claude to consume
-    print(json.dumps({"rows": rows, "total_count": len(rows),
+    # Remove internal _config objects (not JSON-serializable)
+    clean_rows = [{k: v for k, v in r.items() if k != "_config"} for r in rows]
+    print(json.dumps({"rows": clean_rows, "total_count": len(rows),
                        "estimated_cost": round(total_cost, 3),
                        "exceeds_free_tier": exceeds_free_tier,
                        "free_tier_limit": FREE_TIER_LIMIT,
