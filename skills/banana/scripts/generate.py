@@ -19,6 +19,8 @@ import urllib.request
 from datetime import datetime
 from pathlib import Path
 
+from image_config import ImageConfig
+
 # Load config from config.json (single source of truth)
 def load_config():
     """Load Banana configuration from config.json"""
@@ -33,18 +35,10 @@ def load_config():
 CONFIG = load_config()
 
 DEFAULT_MODEL = CONFIG.get("default_model", "gemini-3.1-flash-image-preview")
-DEFAULT_RESOLUTION = "1K"  # Now 1K as default (must be uppercase)
+DEFAULT_RESOLUTION = "1K"  # Must be uppercase (validated by ImageConfig)
 DEFAULT_RATIO = "1:1"
 OUTPUT_DIR = Path.home() / "Documents" / "nanobanana_generated"
 API_BASE = "https://generativelanguage.googleapis.com/v1beta/models"
-
-# ← NEW: Load from config.json (single source of truth)
-# See: skills/banana/references/gemini-models.md for full list
-VALID_RATIOS = set(CONFIG.get("supported_aspect_ratios", [
-    "1:1", "16:9", "9:16", "3:4", "4:3", "3:2", "2:3",
-    "21:9", "9:21", "5:4", "4:5", "1:2", "2:1"
-]))
-VALID_RESOLUTIONS = {"512", "1K", "2K", "4K"}  # Keep legacy for now
 
 
 def generate_image(prompt, model, aspect_ratio, resolution, api_key,
@@ -156,12 +150,15 @@ def main():
 
     args = parser.parse_args()
 
-    if args.aspect_ratio not in VALID_RATIOS:
-        print(json.dumps({"error": True, "message": f"Invalid aspect ratio '{args.aspect_ratio}'. Valid: {sorted(VALID_RATIOS)}"}))
-        sys.exit(1)
-
-    if args.resolution not in VALID_RESOLUTIONS:
-        print(json.dumps({"error": True, "message": f"Invalid resolution '{args.resolution}'. Valid: {sorted(VALID_RESOLUTIONS)}"}))
+    # Validate configuration using ImageConfig
+    try:
+        config = ImageConfig(
+            aspect_ratio=args.aspect_ratio,
+            resolution=args.resolution,
+            safety_filter="on"
+        )
+    except ValueError as e:
+        print(json.dumps({"error": True, "message": str(e)}))
         sys.exit(1)
 
     api_key = args.api_key or os.environ.get("GOOGLE_AI_API_KEY") or os.environ.get("GOOGLE_API_KEY")
