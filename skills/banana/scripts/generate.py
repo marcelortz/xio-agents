@@ -5,8 +5,8 @@ Generate images via Gemini REST API when MCP is unavailable.
 Uses only Python stdlib (no pip dependencies).
 
 Usage:
-    generate.py --prompt "a cat in space" [--aspect-ratio 16:9] [--resolution 1K]
-                [--model MODEL] [--api-key KEY] [--thinking LEVEL] [--image-only]
+    generate.py --prompt "a cat in space" [--domain landscape] [--model MODEL] [--api-key KEY]
+    generate.py --prompt "portrait" [--aspect-ratio 9:16] [--resolution 2K] [--model MODEL]
 """
 
 import argparse
@@ -20,6 +20,7 @@ from datetime import datetime
 from pathlib import Path
 
 from image_config import ImageConfig
+from domain import get_domain, list_domains
 
 # Load config from config.json (single source of truth)
 def load_config():
@@ -141,8 +142,9 @@ def generate_image(prompt, model, aspect_ratio, resolution, api_key,
 def main():
     parser = argparse.ArgumentParser(description="Generate images via Gemini REST API")
     parser.add_argument("--prompt", required=True, help="Image generation prompt")
-    parser.add_argument("--aspect-ratio", default=DEFAULT_RATIO, help=f"Aspect ratio (default: {DEFAULT_RATIO})")
-    parser.add_argument("--resolution", default=DEFAULT_RESOLUTION, help=f"Resolution: 512, 1K, 2K, 4K (default: {DEFAULT_RESOLUTION})")
+    parser.add_argument("--domain", default=None, help=f"Image type domain ({', '.join(list_domains())})")
+    parser.add_argument("--aspect-ratio", default=None, help="Aspect ratio (overrides domain default)")
+    parser.add_argument("--resolution", default=None, help="Resolution: 512, 1K, 2K, 4K (overrides domain default)")
     parser.add_argument("--model", default=DEFAULT_MODEL, help=f"Model ID (default: {DEFAULT_MODEL})")
     parser.add_argument("--api-key", default=None, help="Google AI API key (or set GOOGLE_AI_API_KEY env)")
     parser.add_argument("--thinking", default=None, choices=["minimal", "low", "medium", "high"], help="Thinking level")
@@ -150,16 +152,39 @@ def main():
 
     args = parser.parse_args()
 
+    # Resolve domain and parameters
+    domain = None
+    aspect_ratio = args.aspect_ratio or DEFAULT_RATIO
+    resolution = args.resolution or DEFAULT_RESOLUTION
+
+    if args.domain:
+        try:
+            domain = get_domain(args.domain)
+            # Use domain defaults, but allow explicit CLI args to override
+            if not args.aspect_ratio:
+                aspect_ratio = domain.aspect_ratio
+            if not args.resolution:
+                resolution = domain.resolution
+        except ValueError as e:
+            print(json.dumps({"error": True, "message": str(e)}))
+            sys.exit(1)
+
     # Validate configuration using ImageConfig
     try:
         config = ImageConfig(
-            aspect_ratio=args.aspect_ratio,
-            resolution=args.resolution,
+            aspect_ratio=aspect_ratio,
+            resolution=resolution,
             safety_filter="on"
         )
     except ValueError as e:
         print(json.dumps({"error": True, "message": str(e)}))
         sys.exit(1)
+
+    # Enhance prompt with domain style hints if domain was specified
+    prompt = args.prompt
+    if domain and domain.style_hints:
+        hints = domain.get_prompt_enhancement()
+        prompt = f"{prompt} ({hints})"
 
     api_key = args.api_key or os.environ.get("GOOGLE_AI_API_KEY") or os.environ.get("GOOGLE_API_KEY")
     if not api_key:
@@ -167,10 +192,10 @@ def main():
         sys.exit(1)
 
     result = generate_image(
-        prompt=args.prompt,
+        prompt=prompt,
         model=args.model,
-        aspect_ratio=args.aspect_ratio,
-        resolution=args.resolution,
+        aspect_ratio=aspect_ratio,
+        resolution=resolution,
         api_key=api_key,
         thinking_level=args.thinking,
         image_only=args.image_only,
