@@ -8,13 +8,16 @@ Usage:
     batch.py --csv path/to/file.csv
 
 CSV columns:
-    prompt (required), ratio, resolution, model, preset (all optional)
+    prompt (required), domain, ratio, resolution, model, preset (all optional)
+
+Domain column overrides ratio/resolution if specified (but explicit values override domain).
 
 Example CSV:
-    prompt,ratio,resolution
-    "coffee shop hero image",16:9,2K
-    "team photo placeholder",1:1,1K
-    "product shot on marble",4:3,2K
+    prompt,domain,ratio,resolution
+    "coffee shop hero image",landscape,,
+    "team photo placeholder",portrait,,
+    "product shot on marble",product,4:3,2K
+    "ui mockup",ui,,
 """
 
 import argparse
@@ -24,6 +27,7 @@ import sys
 from pathlib import Path
 
 from image_config import ImageConfig
+from domain import get_domain
 
 # Load config from config.json (single source of truth)
 def load_config():
@@ -87,9 +91,28 @@ def main():
                     errors.append(f"Row {i}: missing prompt")
                     continue
 
-                ratio = row.get("ratio", "").strip() or DEFAULT_RATIO
-                resolution = row.get("resolution", "").strip() or DEFAULT_RESOLUTION
+                # Resolve domain and parameters
+                domain_name = row.get("domain", "").strip() or None
+                domain = None
+                ratio = row.get("ratio", "").strip() or None
+                resolution = row.get("resolution", "").strip() or None
                 model = row.get("model", "").strip() or DEFAULT_MODEL
+
+                # If domain specified, use its defaults (but allow explicit overrides)
+                if domain_name:
+                    try:
+                        domain = get_domain(domain_name)
+                        if not ratio:
+                            ratio = domain.aspect_ratio
+                        if not resolution:
+                            resolution = domain.resolution
+                    except ValueError as e:
+                        errors.append(f"Row {i}: {str(e).split(chr(10))[0]}")
+                        continue
+
+                # Apply script defaults if still not set
+                ratio = ratio or DEFAULT_RATIO
+                resolution = resolution or DEFAULT_RESOLUTION
 
                 # Validate configuration using ImageConfig
                 try:
@@ -105,6 +128,7 @@ def main():
                 rows.append({
                     "row": i,
                     "prompt": prompt,
+                    "domain": domain_name,
                     "ratio": ratio,
                     "resolution": resolution,
                     "model": model,
