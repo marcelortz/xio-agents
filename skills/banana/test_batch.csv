@@ -1,0 +1,6 @@
+prompt,ratio,resolution,model
+"coffee shop hero image",16:9,1K,gemini-3.1-flash-image-preview
+"team photo placeholder",1:1,1K,gemini-3.1-flash-image-preview
+"product shot on marble",4:3,2K,gemini-3.1-flash-image-preview
+"retro design pattern",9:16,1K,gemini-2.5-flash-image
+"cyberpunk city street",16:9,2K,gemini-3.1-flash-image-preview

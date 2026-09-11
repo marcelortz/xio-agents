@@ -1,0 +1,6 @@
+prompt,workflow,domain,ratio,resolution
+hero image,generate_and_edit,landscape,,
+photo series,multi_variant,,1:1,
+simple single,generate_only,product,,
+custom variant,generate_and_edit,landscape,4:3,2K
+invalid wf,xyz_workflow,,1:1,

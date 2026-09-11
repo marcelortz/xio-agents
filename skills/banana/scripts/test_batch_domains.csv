@@ -1,0 +1,8 @@
+prompt,domain,ratio,resolution
+coffee shop hero,landscape,,
+team portrait,portrait,,
+product shot,product,4:3,2K
+ui mockup,ui,,
+logo sketch,logo,,
+invalid domain,xyz,,
+override test,landscape,1:1,
