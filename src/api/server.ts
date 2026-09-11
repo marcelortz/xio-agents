@@ -40,6 +40,9 @@ export class MLOptimizationAPI {
     this.app.use(express.json({ limit: '10mb' }));
     this.app.use(express.urlencoded({ limit: '10mb', extended: true }));
 
+    // Serve static files (dashboard)
+    this.app.use(express.static('public'));
+
     // CORS middleware
     this.app.use((req, res, next) => {
       res.header('Access-Control-Allow-Origin', '*');

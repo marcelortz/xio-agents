@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ML Optimization Suite - Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #6366f1;
+            --secondary: #8b5cf6;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --dark: #1f2937;
+            --light: #f3f4f6;
+            --border: #e5e7eb;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: var(--dark);
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        header h1 {
+            color: var(--primary);
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+
+        header p {
+            color: #666;
+            font-size: 1.1em;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        @media (max-width: 1200px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .card {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .card h2 {
+            color: var(--primary);
+            margin-bottom: 20px;
+            font-size: 1.5em;
+            border-bottom: 2px solid var(--primary);
+            padding-bottom: 15px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        select, input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid var(--border);
+            border-radius: 6px;
+            font-size: 1em;
+            transition: border-color 0.3s;
+        }
+
+        select:focus, input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        button {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 1em;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(99, 102, 241, 0.4);
+        }
+
+        .btn-secondary {
+            background: var(--light);
+            color: var(--dark);
+            border: 2px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            background: var(--border);
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .spinner {
+            border: 3px solid var(--light);
+            border-top: 3px solid var(--primary);
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .results {
+            margin-top: 20px;
+            padding: 20px;
+            background: var(--light);
+            border-radius: 6px;
+            display: none;
+        }
+
+        .results.show {
+            display: block;
+        }
+
+        .result-item {
+            padding: 15px;
+            background: white;
+            border-left: 4px solid var(--primary);
+            margin-bottom: 10px;
+            border-radius: 4px;
+        }
+
+        .result-label {
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        .result-value {
+            color: var(--dark);
+            margin-top: 5px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .comparison-table th {
+            background: var(--primary);
+            color: white;
+            padding: 12px;
+            text-align: left;
+        }
+
+        .comparison-table td {
+            padding: 12px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .comparison-table tr:hover {
+            background: var(--light);
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.85em;
+        }
+
+        .badge-success {
+            background: #d1fae5;
+            color: var(--success);
+        }
+
+        .badge-primary {
+            background: #dbeafe;
+            color: var(--primary);
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .stat-card {
+            background: var(--light);
+            padding: 15px;
+            border-radius: 6px;
+            text-align: center;
+        }
+
+        .stat-label {
+            font-size: 0.9em;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .stat-value {
+            font-size: 1.5em;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .error {
+            background: #fee2e2;
+            color: var(--danger);
+            padding: 15px;
+            border-radius: 6px;
+            margin-top: 10px;
+            display: none;
+        }
+
+        .error.show {
+            display: block;
+        }
+
+        .info-box {
+            background: #dbeafe;
+            color: var(--primary);
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            border-left: 4px solid var(--primary);
+        }
+
+        .full-width {
+            grid-column: 1 / -1;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🚀 ML Optimization Suite</h1>
+            <p>Phase 5: Interactive Web Dashboard</p>
+            <div class="info-box">
+                API Server running on <code>http://localhost:3000</code>
+            </div>
+        </header>
+
+        <div class="grid">
+            <!-- Single Optimization -->
+            <div class="card">
+                <h2>⚙️ Single Optimization</h2>
+
+                <div class="form-group">
+                    <label for="algorithm">Algorithm</label>
+                    <select id="algorithm">
+                        <option value="">Select an algorithm...</option>
+                        <option value="genetic-algorithm">Genetic Algorithm</option>
+                        <option value="particle-swarm">Particle Swarm</option>
+                        <option value="simulated-annealing">Simulated Annealing</option>
+                        <option value="ant-colony">Ant Colony</option>
+                        <option value="differential-evolution">Differential Evolution</option>
+                        <option value="harmony-search">Harmony Search</option>
+                        <option value="tabu-search">Tabu Search</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="dimension">Dimension</label>
+                    <input type="number" id="dimension" min="1" max="100" value="5">
+                </div>
+
+                <div class="form-group">
+                    <label for="iterations">Max Iterations</label>
+                    <input type="number" id="iterations" min="10" max="1000" value="100">
+                </div>
+
+                <div class="button-group">
+                    <button class="btn-primary" onclick="optimizeSingle()">Optimize</button>
+                    <button class="btn-secondary" onclick="clearSingle()">Clear</button>
+                </div>
+
+                <div class="loading" id="singleLoading">
+                    <div class="spinner"></div>
+                    <p style="margin-top: 10px;">Optimizing...</p>
+                </div>
+
+                <div class="error" id="singleError"></div>
+
+                <div class="results" id="singleResults">
+                    <div class="result-item">
+                        <span class="result-label">Algorithm:</span>
+                        <span class="result-value" id="resultAlgo"></span>
+                    </div>
+                    <div class="result-item">
+                        <span class="result-label">Fitness:</span>
+                        <span class="result-value" id="resultFitness"></span>
+                    </div>
+                    <div class="result-item">
+                        <span class="result-label">Duration:</span>
+                        <span class="result-value" id="resultDuration"></span>
+                    </div>
+                    <div class="result-item">
+                        <span class="result-label">Solution:</span>
+                        <span class="result-value" id="resultSolution"></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Batch Optimization -->
+            <div class="card">
+                <h2>📦 Batch Optimization</h2>
+
+                <div class="form-group">
+                    <label for="batchDimension">Dimension</label>
+                    <input type="number" id="batchDimension" min="1" max="100" value="5">
+                </div>
+
+                <div class="form-group">
+                    <label for="batchIterations">Max Iterations</label>
+                    <input type="number" id="batchIterations" min="10" max="1000" value="100">
+                </div>
+
+                <div class="button-group">
+                    <button class="btn-primary" onclick="optimizeBatch()">Run Batch</button>
+                    <button class="btn-secondary" onclick="clearBatch()">Clear</button>
+                </div>
+
+                <div class="loading" id="batchLoading">
+                    <div class="spinner"></div>
+                    <p style="margin-top: 10px;">Optimizing all algorithms...</p>
+                </div>
+
+                <div class="error" id="batchError"></div>
+
+                <div class="results" id="batchResults">
+                    <div class="stat-card">
+                        <div class="stat-label">Total Time</div>
+                        <div class="stat-value" id="batchTime">-</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Algorithm Comparison -->
+            <div class="card full-width">
+                <h2>📊 Algorithm Comparison</h2>
+
+                <div class="button-group">
+                    <button class="btn-primary" onclick="compareAlgorithms()">Compare All Algorithms</button>
+                    <button class="btn-secondary" onclick="clearComparison()">Clear</button>
+                </div>
+
+                <div class="loading" id="compareLoading">
+                    <div class="spinner"></div>
+                    <p style="margin-top: 10px;">Comparing algorithms...</p>
+                </div>
+
+                <div class="error" id="compareError"></div>
+
+                <div class="results" id="compareResults">
+                    <table class="comparison-table">
+                        <thead>
+                            <tr>
+                                <th>Algorithm</th>
+                                <th>Fitness</th>
+                                <th>Duration (ms)</th>
+                                <th>Quality</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="compareBody">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:3000/api';
+
+        async function optimizeSingle() {
+            const algorithm = document.getElementById('algorithm').value;
+            const dimension = parseInt(document.getElementById('dimension').value);
+            const iterations = parseInt(document.getElementById('iterations').value);
+
+            if (!algorithm) {
+                showError('singleError', 'Please select an algorithm');
+                return;
+            }
+
+            showLoading('singleLoading');
+            hideError('singleError');
+
+            try {
+                const response = await fetch(`${API_URL}/optimize`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        algorithm,
+                        dimension,
+                        maxIterations: iterations
+                    })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) throw new Error(data.error);
+
+                document.getElementById('resultAlgo').textContent = data.algorithm;
+                document.getElementById('resultFitness').textContent = data.fitness.toFixed(6);
+                document.getElementById('resultDuration').textContent = `${data.duration}ms`;
+                document.getElementById('resultSolution').textContent =
+                    `[${data.solution.map(v => v.toFixed(4)).join(', ')}]`;
+
+                showResults('singleResults');
+            } catch (error) {
+                showError('singleError', error.message);
+            } finally {
+                hideLoading('singleLoading');
+            }
+        }
+
+        async function optimizeBatch() {
+            const dimension = parseInt(document.getElementById('batchDimension').value);
+            const iterations = parseInt(document.getElementById('batchIterations').value);
+
+            showLoading('batchLoading');
+            hideError('batchError');
+
+            try {
+                const response = await fetch(`${API_URL}/batch-optimize`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        algorithms: [
+                            'genetic-algorithm',
+                            'particle-swarm',
+                            'simulated-annealing',
+                            'ant-colony',
+                            'differential-evolution',
+                            'harmony-search',
+                            'tabu-search'
+                        ],
+                        dimension,
+                        maxIterations: iterations
+                    })
+                });
+
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.error);
+
+                document.getElementById('batchTime').textContent = `${data.totalTime}ms`;
+                showResults('batchResults');
+            } catch (error) {
+                showError('batchError', error.message);
+            } finally {
+                hideLoading('batchLoading');
+            }
+        }
+
+        async function compareAlgorithms() {
+            showLoading('compareLoading');
+            hideError('compareError');
+
+            try {
+                const response = await fetch(`${API_URL}/compare`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        algorithms: [
+                            'genetic-algorithm',
+                            'particle-swarm',
+                            'simulated-annealing',
+                            'ant-colony',
+                            'differential-evolution',
+                            'harmony-search',
+                            'tabu-search'
+                        ],
+                        dimension: 10,
+                        iterations: 100
+                    })
+                });
+
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.error);
+
+                let html = '';
+                data.comparison.forEach((item, index) => {
+                    const isBest = index === 0;
+                    html += `
+                        <tr style="background: ${isBest ? '#dbeafe' : 'white'}">
+                            <td><strong>${item.algorithm}</strong></td>
+                            <td>${item.fitness.toFixed(6)}</td>
+                            <td>${item.duration}</td>
+                            <td>${item.quality.toFixed(4)}</td>
+                            <td>
+                                ${isBest ? '<span class="badge badge-success">🏆 Best</span>' : '<span class="badge badge-primary">✓ OK</span>'}
+                            </td>
+                        </tr>
+                    `;
+                });
+
+                document.getElementById('compareBody').innerHTML = html;
+                showResults('compareResults');
+            } catch (error) {
+                showError('compareError', error.message);
+            } finally {
+                hideLoading('compareLoading');
+            }
+        }
+
+        function showLoading(id) {
+            document.getElementById(id).style.display = 'block';
+        }
+
+        function hideLoading(id) {
+            document.getElementById(id).style.display = 'none';
+        }
+
+        function showResults(id) {
+            document.getElementById(id).classList.add('show');
+        }
+
+        function hideResults(id) {
+            document.getElementById(id).classList.remove('show');
+        }
+
+        function showError(id, message) {
+            const el = document.getElementById(id);
+            el.textContent = '❌ ' + message;
+            el.classList.add('show');
+        }
+
+        function hideError(id) {
+            const el = document.getElementById(id);
+            el.classList.remove('show');
+        }
+
+        function clearSingle() {
+            document.getElementById('algorithm').value = '';
+            document.getElementById('dimension').value = '5';
+            document.getElementById('iterations').value = '100';
+            hideResults('singleResults');
+            hideError('singleError');
+        }
+
+        function clearBatch() {
+            document.getElementById('batchDimension').value = '5';
+            document.getElementById('batchIterations').value = '100';
+            hideResults('batchResults');
+            hideError('batchError');
+        }
+
+        function clearComparison() {
+            hideResults('compareResults');
+            hideError('compareError');
+        }
+
+        // Check API connectivity on load
+        window.addEventListener('load', async () => {
+            try {
+                const response = await fetch(`${API_URL.replace('/api', '')}/health`);
+                if (response.ok) {
+                    console.log('✓ API Server Connected');
+                }
+            } catch (error) {
+                console.error('✗ Cannot connect to API server');
+            }
+        });
+    </script>
+</body>
+</html>
