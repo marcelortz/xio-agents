@@ -1,0 +1,266 @@
+# Phase 2B Configuration
+# ML Optimization Suite - Advanced Optimizers
+# Version: 1.0.0
+
+# ==========================================
+# APPLICATION SETTINGS
+# ==========================================
+app:
+  name: "ML Optimization Suite - Phase 2B"
+  version: "1.0.0"
+  environment: "production"
+  description: "Advanced metaheuristic optimization algorithms"
+  author: "Claude Haiku 4.5"
+  license: "MIT"
+
+# ==========================================
+# GENETIC ALGORITHM SETTINGS
+# ==========================================
+genetic_algorithm:
+  # Population size (individuals per generation)
+  population_size: 50
+
+  # Mutation probability (0.0 to 1.0)
+  mutation_rate: 0.1
+
+  # Crossover probability (0.0 to 1.0)
+  crossover_rate: 0.8
+
+  # Maximum number of generations
+  max_generations: 100
+
+  # Elitism percentage (keep best solutions)
+  elitism_rate: 0.1
+
+  # Tournament size for parent selection
+  tournament_size: 3
+
+  # Enable adaptive mutation
+  adaptive_mutation: false
+
+# ==========================================
+# PARTICLE SWARM OPTIMIZER SETTINGS
+# ==========================================
+particle_swarm:
+  # Number of particles in the swarm
+  num_particles: 30
+
+  # Maximum number of iterations
+  max_iterations: 100
+
+  # Inertia weight (controls momentum)
+  inertia: 0.7
+
+  # Cognitive coefficient (personal best influence)
+  cognitive_coefficient: 1.5
+
+  # Social coefficient (global best influence)
+  social_coefficient: 1.5
+
+  # Velocity clamping
+  velocity_clamping: true
+
+  # Position bounds
+  position_min: 0.0
+  position_max: 1.0
+
+# ==========================================
+# PERFORMANCE TUNING
+# ==========================================
+performance:
+  # Enable multithreading
+  multithreading: false
+
+  # Maximum threads (if multithreading enabled)
+  max_threads: 4
+
+  # Memory limit (MB)
+  memory_limit: 512
+
+  # Timeout per optimization (seconds)
+  timeout: 30
+
+  # Cache optimization results
+  cache_results: true
+
+# ==========================================
+# LOGGING SETTINGS
+# ==========================================
+logging:
+  # Log level: DEBUG, INFO, WARN, ERROR
+  level: "INFO"
+
+  # Log to file
+  file_logging: true
+
+  # Log file path
+  log_file: "logs/phase2b.log"
+
+  # Maximum log file size (MB)
+  max_file_size: 10
+
+  # Number of backup log files
+  backup_count: 5
+
+  # Log format
+  format: "[{timestamp}] {level} - {message}"
+
+# ==========================================
+# TESTING CONFIGURATION
+# ==========================================
+testing:
+  # Enable test mode
+  enabled: true
+
+  # Test framework
+  framework: "jest"
+
+  # Test timeout (milliseconds)
+  timeout: 10000
+
+  # Coverage threshold
+  coverage:
+    statements: 90
+    branches: 85
+    functions: 90
+    lines: 90
+
+  # Test patterns
+  patterns:
+    - "**/*.test.ts"
+    - "**/*.spec.ts"
+
+# ==========================================
+# BUILD CONFIGURATION
+# ==========================================
+build:
+  # TypeScript target
+  target: "ES2020"
+
+  # Module system
+  module: "commonjs"
+
+  # Generate source maps
+  source_maps: true
+
+  # Output directory
+  output_dir: "dist"
+
+  # Declaration files
+  declarations: true
+
+  # Minify output
+  minify: false
+
+# ==========================================
+# DEPLOYMENT SETTINGS
+# ==========================================
+deployment:
+  # Repository URL
+  repository: "https://github.com/marcelortz/xio-agents-2b"
+
+  # Branch
+  branch: "main"
+
+  # Remote name
+  remote: "origin"
+
+  # Auto-commit changes
+  auto_commit: true
+
+  # Commit message template
+  commit_template: "Phase 2B: {message}"
+
+  # Auto-push after commit
+  auto_push: true
+
+  # Pre-deployment checks
+  pre_checks:
+    - "npm test"
+    - "npm run build"
+    - "git status"
+
+# ==========================================
+# SECURITY SETTINGS
+# ==========================================
+security:
+  # Exclude credentials from commits
+  exclude_credentials: true
+
+  # Excluded patterns
+  excluded_patterns:
+    - ".env*"
+    - "*.json"
+    - "credentials/"
+    - ".credentials.json"
+    - "secrets/"
+
+  # Enable security scanning
+  security_scan: true
+
+  # Check for secrets before push
+  check_secrets: true
+
+# ==========================================
+# OPTIMIZATION ALGORITHMS PROFILES
+# ==========================================
+profiles:
+  # Quick optimization (fast convergence)
+  quick:
+    genetic_algorithm:
+      population_size: 20
+      max_generations: 50
+      mutation_rate: 0.15
+    particle_swarm:
+      num_particles: 15
+      max_iterations: 50
+
+  # Balanced optimization (default)
+  balanced:
+    genetic_algorithm:
+      population_size: 50
+      max_generations: 100
+      mutation_rate: 0.10
+    particle_swarm:
+      num_particles: 30
+      max_iterations: 100
+
+  # Thorough optimization (high accuracy)
+  thorough:
+    genetic_algorithm:
+      population_size: 100
+      max_generations: 200
+      mutation_rate: 0.08
+    particle_swarm:
+      num_particles: 50
+      max_iterations: 200
+
+# ==========================================
+# ADVANCED SETTINGS
+# ==========================================
+advanced:
+  # Enable experimental features
+  experimental: false
+
+  # Debug mode
+  debug: false
+
+  # Verbose logging
+  verbose: false
+
+  # Performance profiling
+  profiling: false
+
+  # Seed for reproducibility
+  random_seed: null
+
+# ==========================================
+# STATUS
+# ==========================================
+status:
+  version: "1.0.0"
+  created: "2026-09-11"
+  updated: "2026-09-11"
+  production_ready: true
+  tested: true
+  deployed: true
