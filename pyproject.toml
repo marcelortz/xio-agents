@@ -1,0 +1,105 @@
+[build-system]
+requires = ["setuptools>=65.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ml-optimization-suite"
+version = "1.0.0"
+description = "Advanced metaheuristic optimization algorithms for Python"
+readme = "README.md"
+requires-python = ">=3.8"
+license = {text = "MIT"}
+authors = [
+    {name = "Claude & Team", email = "support@ml-optimization-suite.dev"}
+]
+keywords = [
+    "optimization",
+    "metaheuristic",
+    "genetic-algorithm",
+    "particle-swarm",
+    "simulated-annealing",
+    "machine-learning",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+
+dependencies = [
+    "numpy>=1.20.0",
+    "scipy>=1.7.0",
+    "click>=8.0.0",
+]
+
+[project.optional-dependencies]
+sklearn = ["scikit-learn>=0.24.0"]
+tensorflow = ["tensorflow>=2.0.0"]
+torch = ["torch>=1.9.0"]
+xgboost = ["xgboost>=1.4.0"]
+lightgbm = ["lightgbm>=3.1.0"]
+catboost = ["catboost>=0.25.0"]
+
+dev = [
+    "pytest>=6.0.0",
+    "pytest-cov>=2.12.0",
+    "black>=21.0",
+    "flake8>=3.9.0",
+    "mypy>=0.900",
+    "isort>=5.0.0",
+]
+
+docs = [
+    "sphinx>=4.0.0",
+    "sphinx-rtd-theme>=1.0.0",
+    "jupyter>=1.0.0",
+    "notebook>=6.0.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/marcelortz/xio-agents-2b"
+Documentation = "https://ml-optimization-suite.dev"
+Repository = "https://github.com/marcelortz/xio-agents-2b.git"
+Issues = "https://github.com/marcelortz/xio-agents-2b/issues"
+
+[project.scripts]
+ml-optimize = "ml_optimization_suite.cli:main"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages]
+find = {where = ["src"]}
+
+[tool.black]
+line-length = 100
+target-version = ['py38', 'py39', 'py310', 'py311']
+include = '\.pyi?$'
+
+[tool.isort]
+profile = "black"
+line_length = 100
+multi_line_mode = 3
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+addopts = "--cov=ml_optimization_suite --cov-report=html --cov-report=term-missing"
+
+[tool.mypy]
+python_version = "3.8"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = false
+disallow_incomplete_defs = false
+check_untyped_defs = true
