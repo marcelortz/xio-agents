@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import approvalApi from './api/approval-api';
 import complianceApi from './api/compliance-api';
+import segregationApi from './api/segregation-api';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -15,6 +16,8 @@ console.log('✓ Registrando approval-api');
 app.use('/', approvalApi);
 console.log('✓ Registrando compliance-api');
 app.use('/', complianceApi);
+console.log('✓ Registrando segregation-api');
+app.use('/', segregationApi);
 console.log('✓ Todas las rutas registradas');
 
 // Ruta raíz
