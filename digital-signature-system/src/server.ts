@@ -1,0 +1,193 @@
+import express from 'express';
+import cors from 'cors';
+import approvalApi from './api/approval-api';
+
+const app = express();
+const PORT = process.env.PORT || 3001;
+
+// Middleware
+app.use(cors());
+app.use(express.json());
+
+// Rutas API
+app.use('/', approvalApi);
+
+// Ruta raíz
+app.get('/', (req, res) => {
+  res.json({
+    name: 'Sistema de Aprobación Digital con Firma RSA-2048',
+    description: 'Sistema de gobernanza corporativa para SAS con responsabilidad solidaria del Síndico',
+    version: '1.0.0',
+    documentation: '/api-docs',
+    endpoints: {
+      keys: {
+        'POST /api/keys/generate': 'Generar claves RSA-2048 para Síndico',
+      },
+      transactions: {
+        'POST /api/transactions/create': 'Crear transacción pendiente (> €100)',
+        'GET /api/transactions/pending': 'Obtener transacciones pendientes de aprobación',
+        'GET /api/transactions/high-value': 'Obtener transacciones de alto valor',
+        'GET /api/transactions/:id': 'Obtener detalles de transacción',
+        'POST /api/transactions/:id/approve': 'Aprobar y firmar transacción (Síndico)',
+        'POST /api/transactions/:id/reject': 'Rechazar transacción',
+        'POST /api/transactions/:id/execute': 'Ejecutar transacción aprobada',
+        'POST /api/transactions/:id/verify': 'Verificar firma digital',
+      },
+      audit: {
+        'GET /api/audit/:id': 'Obtener registro de auditoría de transacción',
+      },
+    },
+  });
+});
+
+// API Documentation
+app.get('/api-docs', (req, res) => {
+  res.json({
+    title: 'Sistema de Aprobación Digital - API REST',
+    description: 'Documentación completa de endpoints',
+    baseUrl: `http://localhost:${PORT}`,
+    sections: {
+      'Gestión de Claves': {
+        'POST /api/keys/generate': {
+          description: 'Generar nuevo par de claves RSA-2048 para el Síndico',
+          body: {
+            keyId: 'sindico-omar-main (opcional)',
+          },
+          response: {
+            keyId: 'string',
+            thumbprint: 'string (16 caracteres hex)',
+            createdAt: 'ISO timestamp',
+            expiresAt: 'ISO timestamp (365 días)',
+          },
+        },
+      },
+      'Creación de Transacciones': {
+        'POST /api/transactions/create': {
+          description: 'Crear nueva transacción que requiere aprobación (montos > €100)',
+          minAmount: 100,
+          body: {
+            amount: 'number (> 100)',
+            currency: 'EUR',
+            description: 'string',
+            signatory: 'string (por defecto: Omar)',
+            notes: 'string (opcional)',
+          },
+          response: {
+            transaction: {
+              id: 'string',
+              transactionId: 'TXN-xxxxxx',
+              status: 'PENDING',
+              createdAt: 'ISO timestamp',
+            },
+          },
+        },
+      },
+      'Aprobación y Firma Digital': {
+        'POST /api/transactions/:id/approve': {
+          description: 'Operación CRÍTICA: Síndico (Omar) aprueba y firma digitalmente',
+          requiresAuth: 'Síndico',
+          body: {
+            keyId: 'sindico-omar-main',
+            signatoryId: 'Omar',
+          },
+          signature: {
+            algorithm: 'RSA-SHA256',
+            keySize: 2048,
+            stored: 'Database + Audit Trail',
+          },
+          auditTrail: true,
+          response: {
+            success: true,
+            message: 'Transacción aprobada y firmada digitalmente',
+            signedTransaction: {
+              algorithm: 'RSA-SHA256',
+              verified: 'boolean',
+            },
+            proof: {
+              proofHash: 'string (SHA-256)',
+              isValid: 'boolean',
+            },
+          },
+        },
+      },
+      'Ejecución de Transacciones': {
+        'POST /api/transactions/:id/execute': {
+          description: 'Ejecutar transacción aprobada y verificar firma',
+          requirements: [
+            'Estado = APPROVED',
+            'Firma válida y verificada',
+            'Firma de Síndico válida',
+          ],
+          verification: 'RSA-SHA256 verification',
+          response: {
+            success: true,
+            transaction: {
+              status: 'EXECUTED',
+              signatureVerified: true,
+            },
+          },
+        },
+      },
+      'Auditoría': {
+        'GET /api/audit/:id': {
+          description: 'Obtener registro completo de auditoría de una transacción',
+          response: {
+            auditLog: [
+              {
+                action: 'CREATED | SIGNED | EXECUTED | REJECTED',
+                actor: 'string',
+                timestamp: 'ISO timestamp',
+                details: 'string',
+              },
+            ],
+          },
+        },
+      },
+    },
+    legalFramework: {
+      responsibilidad: 'Síndico (Omar) + SAS responden solidariamente',
+      threshold: '€100 - Transacciones mayores requieren firma digital',
+      signature: 'RSA-2048 (2048 bits)',
+      algorithm: 'RSA-SHA256',
+      auditTrail: 'Completo e inmutable',
+      nonRepudiation: 'Digitalmente verificable',
+    },
+  });
+});
+
+// Error handling
+app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
+  console.error(err);
+  res.status(500).json({
+    error: 'Error interno del servidor',
+    message: err.message,
+  });
+});
+
+// Start server
+app.listen(PORT, () => {
+  console.log(`
+╔════════════════════════════════════════════════════════════╗
+║  Sistema de Aprobación Digital con Firma RSA-2048         ║
+║  Gobernanza Corporativa - SAS                             ║
+╚════════════════════════════════════════════════════════════╝
+
+✓ Servidor iniciado en puerto ${PORT}
+✓ Endpoints disponibles:
+  - http://localhost:${PORT}/
+  - http://localhost:${PORT}/api-docs
+  - http://localhost:${PORT}/api/health
+
+✓ Características:
+  - Firma RSA-2048 (2048 bits)
+  - Aprobación de transacciones > €100
+  - Responsabilidad solidaria: Síndico (Omar) + SAS
+  - Registro de auditoría inmutable
+  - Verificación criptográfica
+
+✓ Base de datos: SQLite (transactions.db)
+✓ Claves: Almacenadas en ./keys/
+  `);
+});
+
+export default app;
