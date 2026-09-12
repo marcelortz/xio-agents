@@ -367,29 +367,30 @@ export class MetricsCollector {
     return {
       timestamp: new Date().toISOString(),
       http: {
-        totalRequests: this.httpRequestTotal,
-        avgResponseTime: this.httpRequestDuration,
+        totalRequests: 'See /metrics for details',
+        avgResponseTime: 'See /metrics for details',
       },
       kyc: {
-        totalVerifications: this.kycVerifications,
-        failedChecks: this.amlChecksFailed,
-        riskyClients: this.riskyClients,
+        totalVerifications: 'See /metrics for details',
+        failedChecks: 'See /metrics for details',
+        riskyClients: 'See /metrics for details',
       },
       segregation: {
-        accountsCreated: this.accountsCreated,
-        transactionsRecorded: this.transactionsRecorded,
-        totalAUM: this.totalAUM,
-        guaranteeFund: this.guaranteeFund,
+        accountsCreated: 'See /metrics for details',
+        transactionsRecorded: 'See /metrics for details',
+        totalAUM: 'See /metrics for details',
+        guaranteeFund: 'See /metrics for details',
       },
       tax: {
-        reportsGenerated: this.taxReportsGenerated,
-        reportsSubmitted: this.taxReportsSubmitted,
+        reportsGenerated: 'See /metrics for details',
+        reportsSubmitted: 'See /metrics for details',
       },
       security: {
-        failedAuthentications: this.failedAuthentications,
-        unauthorizedAccessAttempts: this.unauthorizedAccess,
-        suspiciousActivities: this.suspiciousActivities,
+        failedAuthentications: 'See /metrics for details',
+        unauthorizedAccessAttempts: 'See /metrics for details',
+        suspiciousActivities: 'See /metrics for details',
       },
+      info: 'Use /monitoring/metrics for Prometheus format or /monitoring/dashboard for aggregated view',
     };
   }
 }

@@ -20,10 +20,15 @@ router.get('/metrics', async (req: Request, res: Response) => {
 // GET /metrics/summary - Human-readable metrics summary
 router.get('/metrics/summary', async (req: Request, res: Response) => {
   try {
-    const summary = metricsCollector.getSummary();
     res.json({
       timestamp: new Date().toISOString(),
-      metrics: summary,
+      info: 'Metrics are available in Prometheus format at /monitoring/metrics',
+      endpoints: {
+        prometheus: '/monitoring/metrics',
+        dashboard: '/monitoring/dashboard',
+        alerts: '/monitoring/alerts',
+        compliance: '/monitoring/compliance-report',
+      },
     });
   } catch (error: any) {
     logger.error('metrics_summary', 'Failed to generate summary', error);
@@ -49,6 +54,82 @@ router.get('/health', async (req: Request, res: Response) => {
   } catch (error: any) {
     logger.error('health_check', 'Health check failed', error);
     res.status(503).json({ status: 'unhealthy', error: error.message });
+  }
+});
+
+// GET /alert-statistics - Alert statistics
+router.get('/alert-statistics', async (req: Request, res: Response) => {
+  try {
+    const stats = alertingSystem.getAlertStatistics();
+
+    res.json({
+      timestamp: new Date().toISOString(),
+      ...stats,
+    });
+  } catch (error: any) {
+    logger.error('alert_statistics', 'Failed to get alert statistics', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// GET /alert-rules - List alert rules
+router.get('/alert-rules', async (req: Request, res: Response) => {
+  try {
+    const rules = alertingSystem.getRules();
+
+    res.json({
+      total: rules.length,
+      rules,
+    });
+  } catch (error: any) {
+    logger.error('alert_rules', 'Failed to list alert rules', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// POST /alerts/rules/:id/enable - Enable alert rule
+router.post('/alerts/rules/:id/enable', async (req: Request, res: Response) => {
+  try {
+    const success = alertingSystem.enableRule(req.params.id);
+
+    if (!success) {
+      return res.status(404).json({ error: 'Rule not found' });
+    }
+
+    await logger.info('rule_enabled', `Rule ${req.params.id} enabled`, {
+      ruleId: req.params.id,
+    });
+
+    res.json({
+      success: true,
+      message: 'Rule enabled',
+    });
+  } catch (error: any) {
+    logger.error('rule_enable', 'Failed to enable rule', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// POST /alerts/rules/:id/disable - Disable alert rule
+router.post('/alerts/rules/:id/disable', async (req: Request, res: Response) => {
+  try {
+    const success = alertingSystem.disableRule(req.params.id);
+
+    if (!success) {
+      return res.status(404).json({ error: 'Rule not found' });
+    }
+
+    await logger.info('rule_disabled', `Rule ${req.params.id} disabled`, {
+      ruleId: req.params.id,
+    });
+
+    res.json({
+      success: true,
+      message: 'Rule disabled',
+    });
+  } catch (error: any) {
+    logger.error('rule_disable', 'Failed to disable rule', error);
+    res.status(500).json({ error: error.message });
   }
 });
 
@@ -112,82 +193,6 @@ router.post('/alerts/:id/acknowledge', async (req: Request, res: Response) => {
   }
 });
 
-// GET /alerts/statistics - Alert statistics
-router.get('/alerts/statistics', async (req: Request, res: Response) => {
-  try {
-    const stats = alertingSystem.getAlertStatistics();
-
-    res.json({
-      timestamp: new Date().toISOString(),
-      ...stats,
-    });
-  } catch (error: any) {
-    logger.error('alert_statistics', 'Failed to get alert statistics', error);
-    res.status(500).json({ error: error.message });
-  }
-});
-
-// GET /alerts/rules - List alert rules
-router.get('/alerts/rules', async (req: Request, res: Response) => {
-  try {
-    const rules = alertingSystem.getRules();
-
-    res.json({
-      total: rules.length,
-      rules,
-    });
-  } catch (error: any) {
-    logger.error('alert_rules', 'Failed to list alert rules', error);
-    res.status(500).json({ error: error.message });
-  }
-});
-
-// POST /alerts/rules/:id/enable - Enable alert rule
-router.post('/alerts/rules/:id/enable', async (req: Request, res: Response) => {
-  try {
-    const success = alertingSystem.enableRule(req.params.id);
-
-    if (!success) {
-      return res.status(404).json({ error: 'Rule not found' });
-    }
-
-    await logger.info('rule_enabled', `Rule ${req.params.id} enabled`, {
-      ruleId: req.params.id,
-    });
-
-    res.json({
-      success: true,
-      message: 'Rule enabled',
-    });
-  } catch (error: any) {
-    logger.error('rule_enable', 'Failed to enable rule', error);
-    res.status(500).json({ error: error.message });
-  }
-});
-
-// POST /alerts/rules/:id/disable - Disable alert rule
-router.post('/alerts/rules/:id/disable', async (req: Request, res: Response) => {
-  try {
-    const success = alertingSystem.disableRule(req.params.id);
-
-    if (!success) {
-      return res.status(404).json({ error: 'Rule not found' });
-    }
-
-    await logger.info('rule_disabled', `Rule ${req.params.id} disabled`, {
-      ruleId: req.params.id,
-    });
-
-    res.json({
-      success: true,
-      message: 'Rule disabled',
-    });
-  } catch (error: any) {
-    logger.error('rule_disable', 'Failed to disable rule', error);
-    res.status(500).json({ error: error.message });
-  }
-});
-
 // GET /logs - Get logs
 router.get('/logs', async (req: Request, res: Response) => {
   try {
@@ -211,16 +216,28 @@ router.get('/logs', async (req: Request, res: Response) => {
 // GET /dashboard - Dashboard data (aggregated view)
 router.get('/dashboard', async (req: Request, res: Response) => {
   try {
-    const summary = metricsCollector.getSummary();
     const alertStats = alertingSystem.getAlertStatistics();
     const activeAlerts = alertingSystem.getActiveAlerts();
 
     res.json({
       timestamp: new Date().toISOString(),
       uptime: process.uptime(),
-      memory: process.memoryUsage(),
-      cpu: process.cpuUsage(),
-      metrics: summary,
+      memory: {
+        heapUsed: process.memoryUsage().heapUsed,
+        heapTotal: process.memoryUsage().heapTotal,
+      },
+      cpu: {
+        user: process.cpuUsage().user,
+        system: process.cpuUsage().system,
+      },
+      metrics: {
+        info: 'Detailed metrics available at /monitoring/metrics (Prometheus format)',
+        endpoints: {
+          prometheus: '/monitoring/metrics',
+          alerts: '/monitoring/alerts',
+          compliance: '/monitoring/compliance-report',
+        },
+      },
       alerts: {
         ...alertStats,
         recent: activeAlerts.slice(0, 10),
@@ -241,33 +258,33 @@ router.get('/dashboard', async (req: Request, res: Response) => {
 // GET /compliance-report - Compliance report
 router.get('/compliance-report', async (req: Request, res: Response) => {
   try {
-    const summary = metricsCollector.getSummary();
+    const alertStats = alertingSystem.getAlertStatistics();
 
     res.json({
       timestamp: new Date().toISOString(),
       compliance: {
         kyc: {
-          totalVerifications: summary.kyc?.totalVerifications || 0,
-          failedChecks: summary.kyc?.failedChecks || 0,
-          riskyClients: summary.kyc?.riskyClients || 0,
+          info: 'KYC metrics tracked via /monitoring/metrics',
+          endpoint: '/compliance/kyc/*',
         },
         segregation: {
-          accountsCreated: summary.segregation?.accountsCreated || 0,
-          transactionsRecorded: summary.segregation?.transactionsRecorded || 0,
-          totalAUM: summary.segregation?.totalAUM || 0,
-          guaranteeFund: summary.segregation?.guaranteeFund || 0,
+          info: 'Segregation metrics tracked via /monitoring/metrics',
+          endpoint: '/segregation/*',
         },
         tax: {
-          reportsGenerated: summary.tax?.reportsGenerated || 0,
-          reportsSubmitted: summary.tax?.reportsSubmitted || 0,
+          info: 'Tax metrics tracked via /monitoring/metrics',
+          endpoint: '/tax/*',
         },
         security: {
-          failedAuthentications: summary.security?.failedAuthentications || 0,
-          unauthorizedAccessAttempts: summary.security?.unauthorizedAccessAttempts || 0,
-          suspiciousActivities: summary.security?.suspiciousActivities || 0,
+          info: 'Security metrics tracked automatically',
+          monitored: ['failed_authentications', 'unauthorized_access', 'suspicious_activities'],
         },
       },
-      alerts: alertingSystem.getAlertStatistics(),
+      alerts: alertStats,
+      metricsAvailable: {
+        prometheus: '/monitoring/metrics',
+        dashboard: '/monitoring/dashboard',
+      },
     });
   } catch (error: any) {
     logger.error('compliance_report', 'Failed to generate compliance report', error);
