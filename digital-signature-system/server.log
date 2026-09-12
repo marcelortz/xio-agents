@@ -28,3 +28,24 @@
 ✓ Base de datos: SQLite (transactions.db)
 ✓ Claves: Almacenadas en ./keys/
   
+✅ Cuenta CLIENT creada: ACC-1789220994998-BBE64481
+✅ Cuenta CLIENT creada: ACC-1789220998853-749083A1
+✅ Cuenta COMPANY creada: ACC-1789221000428-DF94A70F
+✅ Cuenta GUARANTEE creada: ACC-1789221001940-E0A3224D
+✅ Cuenta INSURANCE creada: ACC-1789221003351-D2B30AF7
+📝 Transacción registrada: LDG-1789221004524-CDD4AB0B | Tipo: DEPOSIT | Monto: €100000
+📝 Transacción registrada: LDG-1789221005178-4D3C14D9 | Tipo: GUARANTEE_ALLOCATION | Monto: €5000
+📝 Transacción registrada: LDG-1789221005179-40C6F8C3 | Tipo: DEPOSIT | Monto: €5000
+🛡️ Fondo de garantía asignado: €5000 (5% de €95000)
+📝 Transacción registrada: LDG-1789221005778-34570C9B | Tipo: TRANSFER | Monto: €2000
+📝 Transacción registrada: LDG-1789221005779-D6CAA30D | Tipo: TRANSFER | Monto: €2000
+💳 Transferencia: €2000 de ACC-1789220998853-749083A1 a ACC-1789221000428-DF94A70F
+📝 Transacción registrada: LDG-1789221006463-FFC5851E | Tipo: DEPOSIT | Monto: €1000
+✅ Cuenta CLIENT creada: ACC-1789221391657-371190BE
+✅ Cuenta COMPANY creada: ACC-1789221392812-D5ADB81E
+✅ Cuenta GUARANTEE creada: ACC-1789221393920-FAFC590C
+✅ Cuenta INSURANCE creada: ACC-1789221395154-4D593F72
+📝 Transacción registrada: LDG-1789221396336-BA1CF943 | Tipo: DEPOSIT | Monto: €150000
+📝 Transacción registrada: LDG-1789221397518-EBC87D89 | Tipo: GUARANTEE_ALLOCATION | Monto: €7500
+📝 Transacción registrada: LDG-1789221397518-E3684BF5 | Tipo: DEPOSIT | Monto: €7500
+🛡️ Fondo de garantía asignado: €7500 (5% de €142500)
