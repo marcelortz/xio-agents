@@ -114,18 +114,20 @@ export class TransactionsRepository {
   ): Promise<Transaction> {
     return new Promise((resolve, reject) => {
       const approvedAt = new Date().toISOString();
+      const self = this;
 
       this.db.run(
         `UPDATE transactions
          SET status = ?, signature = ?, keyId = ?, algorithm = ?, approvedAt = ?
          WHERE transactionId = ?`,
         ['APPROVED', signatureData.signature, signatureData.keyId, signatureData.algorithm, approvedAt, transactionId],
-        function(err) {
+        async function(err) {
           if (err) reject(err);
           else {
             // Registrar en auditoría
-            this.logAuditEntry(transactionId, 'APPROVED', 'SYSTEM', `Transacción firmada y aprobada`);
-            resolve(this.getTransaction(transactionId) as any);
+            await self.logAuditEntry(transactionId, 'APPROVED', 'SYSTEM', `Transacción firmada y aprobada`);
+            const tx = await self.getTransaction(transactionId);
+            resolve(tx as any);
           }
         }
       );
@@ -134,13 +136,14 @@ export class TransactionsRepository {
 
   async rejectTransaction(transactionId: string, reason: string): Promise<void> {
     return new Promise((resolve, reject) => {
+      const self = this;
       this.db.run(
         `UPDATE transactions SET status = ? WHERE transactionId = ?`,
         ['REJECTED', transactionId],
-        function(err) {
+        async function(err) {
           if (err) reject(err);
           else {
-            this.logAuditEntry(transactionId, 'REJECTED', 'SYSTEM', reason);
+            await self.logAuditEntry(transactionId, 'REJECTED', 'SYSTEM', reason);
             resolve();
           }
         }
@@ -151,14 +154,15 @@ export class TransactionsRepository {
   async executeTransaction(transactionId: string): Promise<void> {
     return new Promise((resolve, reject) => {
       const executedAt = new Date().toISOString();
+      const self = this;
 
       this.db.run(
         `UPDATE transactions SET status = ?, executedAt = ? WHERE transactionId = ?`,
         ['EXECUTED', executedAt, transactionId],
-        function(err) {
+        async function(err) {
           if (err) reject(err);
           else {
-            this.logAuditEntry(transactionId, 'EXECUTED', 'SYSTEM', `Transacción ejecutada exitosamente`);
+            await self.logAuditEntry(transactionId, 'EXECUTED', 'SYSTEM', `Transacción ejecutada exitosamente`);
             resolve();
           }
         }
