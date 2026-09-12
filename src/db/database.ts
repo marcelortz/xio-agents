@@ -26,6 +26,7 @@ export interface DatabaseConfig {
 }
 
 export interface ConnectionPool {
+  connect: () => Promise<void>;
   query: (sql: string, params?: any[]) => Promise<any>;
   all: (sql: string, params?: any[]) => Promise<any[]>;
   get: (sql: string, params?: any[]) => Promise<any>;

@@ -9,6 +9,7 @@ import {
 } from '../models/advanced-optimizers';
 import { Optimizer } from '../models/optimizer';
 import { FederatedLearningAPIHandler } from './federated-learning-api';
+import { getDatabase } from '../db/database';
 
 interface OptimizationRequest {
   algorithm: string;
@@ -356,11 +357,31 @@ export class MLOptimizationAPI {
   }
 
   public start(): void {
-    this.app.listen(this.port, () => {
+    const server = this.app.listen(this.port, () => {
       console.log(`ML Optimization Suite API running on http://localhost:${this.port}`);
       console.log(`Health check: http://localhost:${this.port}/health`);
       console.log(`API docs: http://localhost:${this.port}/api/info`);
     });
+
+    // Handle graceful shutdown
+    const gracefulShutdown = async () => {
+      console.log('Shutting down gracefully...');
+      server.close(async () => {
+        try {
+          const db = getDatabase();
+          if (db) {
+            await db.close();
+            console.log('Database connection closed');
+          }
+        } catch (err) {
+          console.error('Error closing database:', err);
+        }
+        process.exit(0);
+      });
+    };
+
+    process.on('SIGTERM', gracefulShutdown);
+    process.on('SIGINT', gracefulShutdown);
   }
 
   public getApp(): Express {
