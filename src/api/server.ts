@@ -8,6 +8,7 @@ import {
   TabuSearch,
 } from '../models/advanced-optimizers';
 import { Optimizer } from '../models/optimizer';
+import { FederatedLearningAPIHandler } from './federated-learning-api';
 
 interface OptimizationRequest {
   algorithm: string;
@@ -63,6 +64,10 @@ export class MLOptimizationAPI {
   }
 
   private setupRoutes(): void {
+    // Initialize federated learning API
+    const federatedAPI = new FederatedLearningAPIHandler();
+    this.app.use('/federated', federatedAPI.getRouter());
+
     // Health check
     this.app.get('/health', (req: Request, res: Response) => {
       res.json({ status: 'healthy', timestamp: new Date().toISOString() });
