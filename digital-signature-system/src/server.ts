@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import approvalApi from './api/approval-api';
+import complianceApi from './api/compliance-api';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -10,7 +11,11 @@ app.use(cors());
 app.use(express.json());
 
 // Rutas API
+console.log('✓ Registrando approval-api');
 app.use('/', approvalApi);
+console.log('✓ Registrando compliance-api');
+app.use('/', complianceApi);
+console.log('✓ Todas las rutas registradas');
 
 // Ruta raíz
 app.get('/', (req, res) => {
@@ -35,6 +40,14 @@ app.get('/', (req, res) => {
       },
       audit: {
         'GET /api/audit/:id': 'Obtener registro de auditoría de transacción',
+      },
+      compliance: {
+        'POST /compliance/kyc/register': 'Registrar cliente con Cédula Ecuador',
+        'POST /compliance/kyc/verify/:clientId': 'Verificar KYC del cliente',
+        'GET /compliance/client/:clientId': 'Obtener estado completo del cliente',
+        'POST /compliance/validate-transaction': 'Validar transacción (AML checks)',
+        'GET /compliance/flags/active': 'Obtener flags AML activas',
+        'POST /compliance/report-uif/:flagId': 'Reportar a UIF (Inteligencia Financiera)',
       },
     },
   });
