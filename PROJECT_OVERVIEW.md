@@ -5,10 +5,11 @@
 A complete, production-ready federated learning platform with:
 - **Backend Framework** - In-memory federated learning implementation
 - **REST API** - 13 HTTP endpoints for all operations  
+- **Database Layer** - Persistent storage with SQLite/PostgreSQL support
 - **TypeScript Client SDK** - Type-safe library for API integration
 - **React Dashboard** - Professional web interface for management
 
-**Total Deliverables:** 7,300+ lines of code + comprehensive documentation
+**Total Deliverables:** 8,150+ lines of code + 2,500+ lines of documentation
 
 ---
 
@@ -34,6 +35,21 @@ A complete, production-ready federated learning platform with:
 │            Federated Learning Framework                     │
 │  (Clients, Server, Aggregation, Training)                  │
 └────────────────────────────────────────────────────────────┘
+                            ↓
+┌────────────────────────────────────────────────────────────┐
+│          Repository Layer (Data Access)                    │
+│  (SessionRepository, ClientRepository, etc.)              │
+└────────────────────────────────────────────────────────────┘
+                            ↓
+┌────────────────────────────────────────────────────────────┐
+│      Database Connection Pooling & Management              │
+│  (SQLite Development | PostgreSQL Production)             │
+└────────────────────────────────────────────────────────────┘
+                            ↓
+┌────────────────────────────────────────────────────────────┐
+│                  Persistent Data Storage                    │
+│  (Sessions, Clients, Training History, Metrics)           │
+└────────────────────────────────────────────────────────────┘
 ```
 
 ---
@@ -51,15 +67,23 @@ ml-optimization-suite/
 │   ├── models/
 │   │   ├── federated-learning.ts (Framework)
 │   │   └── federated-learning.test.ts (Framework tests)
+│   ├── db/
+│   │   ├── database.ts (Connection pooling, schema, CRUD)
+│   │   └── repository.ts (Data access layer, domain models)
 │   └── components/
 │       ├── FederatedLearningDashboard.tsx (React component)
 │       └── App.tsx (Example React app)
 │
-├── FEDERATED_LEARNING.md (Framework docs)
-├── FEDERATED_LEARNING_API.md (API docs)
-├── FEDERATED_LEARNING_CLIENT_GUIDE.md (Client SDK docs)
-├── REACT_DASHBOARD_GUIDE.md (Dashboard docs)
-└── PROJECT_OVERVIEW.md (This file)
+├── Documentation/
+│   ├── FEDERATED_LEARNING.md (Framework docs)
+│   ├── FEDERATED_LEARNING_API.md (API docs)
+│   ├── FEDERATED_LEARNING_CLIENT_GUIDE.md (Client SDK docs)
+│   ├── REACT_DASHBOARD_GUIDE.md (Dashboard docs)
+│   ├── DATABASE_WRAPPER_GUIDE.md (Database layer docs)
+│   ├── DATABASE_INTEGRATION_GUIDE.md (API integration guide)
+│   ├── LOCAL_TESTING_GUIDE.md (Testing procedures)
+│   ├── VERCEL_DEPLOYMENT_GUIDE.md (Deployment guide)
+│   └── PROJECT_OVERVIEW.md (This file)
 ```
 
 ---
@@ -128,6 +152,47 @@ Strategies & Info
 - Type-safe request/response interfaces
 
 **Tested Workflow:** Create session → Add clients → Train → Evaluate
+
+---
+
+### Layer 2.5: Database Persistence Layer (850 lines)
+
+**Location:** `src/db/database.ts` (500 lines) + `src/db/repository.ts` (350 lines)
+
+**Components:**
+
+**Database Layer (`database.ts`):**
+- `DatabaseManager` - Connection pooling and query execution
+- `SQLiteConnectionPool` - Development database (file-based)
+- `PostgreSQLConnectionPool` - Production database (scalable)
+- `ConnectionPool` interface - Unified connection abstraction
+
+**Repository Layer (`repository.ts`):**
+- `SessionRepository` - Session CRUD and metadata
+- `ClientRepository` - Client registration and removal
+- `TrainingRepository` - Training round recording and history
+- `MetricsRepository` - Model weights and performance metrics
+- `RepositoryManager` - Facade for unified repository access
+- Domain models - Type-safe data objects (Session, Client, TrainingRound, Metrics)
+
+**Features:**
+- ✅ SQLite for development (file-based, zero-setup)
+- ✅ PostgreSQL for production (scalable, concurrent)
+- ✅ Automatic connection pooling (configurable)
+- ✅ Automatic schema initialization
+- ✅ Foreign key constraints for data integrity
+- ✅ Indexed queries for performance
+- ✅ Type-safe domain models
+- ✅ Singleton pattern for app-wide access
+- ✅ Full TypeScript type definitions
+
+**Schema:**
+- `sessions` table - Session metadata and status
+- `clients` table - Client registrations per session
+- `training_history` table - Training rounds with metrics
+- `metrics` table - Latest model weights and statistics
+
+**Integration:** Ready for API endpoint integration (see DATABASE_INTEGRATION_GUIDE.md)
 
 ---
 
@@ -292,11 +357,12 @@ function App() {
 |-----------|-------|------|--------|
 | Framework | 682 | TypeScript | ✅ Complete |
 | API Handler | 976 | TypeScript | ✅ Complete |
+| Database Layer | 850 | TypeScript | ✅ Complete |
 | Client SDK | 1,200+ | TypeScript | ✅ Complete |
 | React Dashboard | 1,430 | TSX/React | ✅ Complete |
 | Test/Examples | 1,000+ | TypeScript | ✅ Complete |
-| Documentation | 2,000+ | Markdown | ✅ Complete |
-| **TOTAL** | **7,300+** | Mixed | **✅ Complete** |
+| Documentation | 2,500+ | Markdown | ✅ Complete |
+| **TOTAL** | **8,150+** | Mixed | **✅ Complete** |
 
 ---
 
@@ -317,6 +383,15 @@ function App() {
 - ✅ CORS support
 - ✅ Request logging
 - ✅ Session management
+
+### Database & Persistence
+- ✅ Dual-database support (SQLite + PostgreSQL)
+- ✅ Automatic connection pooling
+- ✅ Type-safe repository layer
+- ✅ Automatic schema initialization
+- ✅ Data integrity with foreign keys
+- ✅ Performance with proper indexing
+- ✅ Four core entities: Sessions, Clients, Training History, Metrics
 
 ### TypeScript Client
 - ✅ Full type safety with TypeScript
@@ -477,14 +552,17 @@ CMD npm run api
 
 ## 🎯 Next Steps
 
-1. **Deployment:** Choose deployment platform
-2. **Customization:** Adapt to specific needs
-3. **Integration:** Connect to existing systems
-4. **Enhancement:** Add more aggregation strategies
-5. **Monitoring:** Add performance monitoring
-6. **Scaling:** Handle multiple sessions
-7. **Security:** Add authentication/authorization
-8. **Data:** Connect to real data sources
+1. **Database Integration:** Wire repository layer into API endpoints (see DATABASE_INTEGRATION_GUIDE.md)
+2. **Deployment:** Choose deployment platform (local, Docker, cloud)
+3. **Testing:** Run comprehensive local tests (see LOCAL_TESTING_GUIDE.md)
+4. **Production Setup:** Configure PostgreSQL for production
+5. **Customization:** Adapt to specific needs
+6. **Integration:** Connect to existing systems
+7. **Enhancement:** Add more aggregation strategies
+8. **Monitoring:** Add performance monitoring
+9. **Scaling:** Handle multiple sessions
+10. **Security:** Add authentication/authorization
+11. **Data:** Connect to real data sources
 
 ---
 
