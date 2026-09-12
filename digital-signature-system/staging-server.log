@@ -1,0 +1,32 @@
+
+> digital-signature-approval-system@1.0.0 start
+> node dist/server.js
+
+✓ Registrando approval-api
+✓ Registrando compliance-api
+✓ Registrando segregation-api
+✓ Todas las rutas registradas
+
+╔════════════════════════════════════════════════════════════╗
+║  Sistema de Aprobación Digital con Firma RSA-2048         ║
+║  Gobernanza Corporativa - SAS                             ║
+╚════════════════════════════════════════════════════════════╝
+
+✓ Servidor iniciado en puerto 3002
+✓ Endpoints disponibles:
+  - http://localhost:3002/
+  - http://localhost:3002/api-docs
+  - http://localhost:3002/api/health
+
+✓ Características:
+  - Firma RSA-2048 (2048 bits)
+  - Aprobación de transacciones > €100
+  - Responsabilidad solidaria: Síndico (Omar) + SAS
+  - Registro de auditoría inmutable
+  - Verificación criptográfica
+
+✓ Base de datos: SQLite (transactions.db)
+✓ Claves: Almacenadas en ./keys/
+  
+✅ Cuenta CLIENT creada: ACC-1789221634883-DBC76E9B
+✅ Cuenta CLIENT creada: ACC-1789221769818-4481877E
