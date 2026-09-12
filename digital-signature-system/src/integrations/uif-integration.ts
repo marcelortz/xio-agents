@@ -42,8 +42,10 @@ export class UIFIntegration {
 
   constructor(config: UIFConfig) {
     this.config = {
-      timeout: 45000,
-      retries: 3,
+      ...{
+        timeout: 45000,
+        retries: 3,
+      },
       ...config,
     };
 
@@ -53,7 +55,7 @@ export class UIFIntegration {
     });
 
     // Add authentication interceptor
-    this.client.interceptors.request.use((request) => {
+    this.client.interceptors.request.use((request: any) => {
       if (request.url) {
         const signature = this.generateSignature(
           request.url,

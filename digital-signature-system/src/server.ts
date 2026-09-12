@@ -4,6 +4,10 @@ import approvalApi from './api/approval-api';
 import complianceApi from './api/compliance-api';
 import segregationApi from './api/segregation-api';
 import taxApi from './api/tax-api';
+import monitoringApi from './api/monitoring-api';
+import MonitoringMiddleware from './monitoring/monitoring-middleware';
+import logger from './monitoring/logger';
+import { alertingSystem } from './monitoring/alerting';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -11,6 +15,25 @@ const PORT = process.env.PORT || 3001;
 // Middleware
 app.use(cors());
 app.use(express.json());
+
+// Monitoring Middleware
+app.use(MonitoringMiddleware.requestTracker());
+app.use(MonitoringMiddleware.metricsReporter());
+app.use(MonitoringMiddleware.kyc_amlMonitor());
+app.use(MonitoringMiddleware.segregationMonitor());
+app.use(MonitoringMiddleware.taxMonitor());
+app.use(MonitoringMiddleware.integrationMonitor());
+app.use(MonitoringMiddleware.securityMonitor());
+
+// Alert Subscribers
+alertingSystem.subscribe(async (alert) => {
+  await logger.info('alert_triggered', `Alert: ${alert.ruleName}`, {
+    alertId: alert.id,
+    severity: alert.severity,
+    metric: alert.metric,
+    value: alert.value,
+  });
+});
 
 // Rutas API
 console.log('✓ Registrando approval-api');
@@ -21,6 +44,8 @@ console.log('✓ Registrando segregation-api');
 app.use('/', segregationApi);
 console.log('✓ Registrando tax-api');
 app.use('/tax', taxApi);
+console.log('✓ Registrando monitoring-api');
+app.use('/monitoring', monitoringApi);
 console.log('✓ Todas las rutas registradas');
 
 // Ruta raíz
@@ -54,6 +79,17 @@ app.get('/', (req, res) => {
         'POST /compliance/validate-transaction': 'Validar transacción (AML checks)',
         'GET /compliance/flags/active': 'Obtener flags AML activas',
         'POST /compliance/report-uif/:flagId': 'Reportar a UIF (Inteligencia Financiera)',
+      },
+      monitoring: {
+        'GET /monitoring/metrics': 'Obtener métricas en formato Prometheus',
+        'GET /monitoring/metrics/summary': 'Resumen de métricas en JSON',
+        'GET /monitoring/health': 'Health check del sistema',
+        'GET /monitoring/dashboard': 'Dashboard de monitoreo agregado',
+        'GET /monitoring/alerts': 'Obtener lista de alertas',
+        'GET /monitoring/alerts/statistics': 'Estadísticas de alertas',
+        'POST /monitoring/alerts/:id/acknowledge': 'Reconocer alerta',
+        'GET /monitoring/compliance-report': 'Reporte de cumplimiento',
+        'GET /monitoring/logs': 'Obtener logs del sistema',
       },
     },
   });
@@ -174,28 +210,27 @@ app.get('/api-docs', (req, res) => {
   });
 });
 
-// Error handling
-app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
-  console.error(err);
-  res.status(500).json({
-    error: 'Error interno del servidor',
-    message: err.message,
-  });
-});
+// Error handling with monitoring
+app.use(MonitoringMiddleware.errorHandler());
 
 // Start server
-app.listen(PORT, () => {
+const server = app.listen(PORT, async () => {
   console.log(`
 ╔════════════════════════════════════════════════════════════╗
 ║  Sistema de Aprobación Digital con Firma RSA-2048         ║
 ║  Gobernanza Corporativa - SAS                             ║
+║  + Monitoreo & Observabilidad en Tiempo Real              ║
 ╚════════════════════════════════════════════════════════════╝
 
 ✓ Servidor iniciado en puerto ${PORT}
 ✓ Endpoints disponibles:
   - http://localhost:${PORT}/
   - http://localhost:${PORT}/api-docs
-  - http://localhost:${PORT}/api/health
+  - http://localhost:${PORT}/monitoring/health
+  - http://localhost:${PORT}/monitoring/dashboard
+  - http://localhost:${PORT}/monitoring/metrics
+  - http://localhost:${PORT}/monitoring/alerts
+  - http://localhost:${PORT}/monitoring/compliance-report
 
 ✓ Características:
   - Firma RSA-2048 (2048 bits)
@@ -204,9 +239,29 @@ app.listen(PORT, () => {
   - Registro de auditoría inmutable
   - Verificación criptográfica
 
+✓ Monitoreo & Observabilidad:
+  - Recolección de métricas Prometheus
+  - Sistema de alertas en tiempo real (10 reglas predefinidas)
+  - Logging centralizado con trazas distribuidas
+  - Dashboard de cumplimiento regulatorio
+  - Reportes de alertas y compliance
+
 ✓ Base de datos: SQLite (transactions.db)
 ✓ Claves: Almacenadas en ./keys/
+✓ Logs: Almacenados en ./logs/
   `);
+
+  await logger.info('server_startup', 'Sistema completamente iniciado');
+});
+
+// Graceful shutdown
+process.on('SIGTERM', async () => {
+  console.log('📛 SIGTERM recibido, cerrando servidor...');
+  await logger.info('server_shutdown', 'SIGTERM recibido');
+  server.close(async () => {
+    await logger.shutdown();
+    process.exit(0);
+  });
 });
 
 export default app;

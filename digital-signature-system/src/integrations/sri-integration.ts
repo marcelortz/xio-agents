@@ -40,8 +40,10 @@ export class SRIIntegration {
 
   constructor(config: SRIConfig) {
     this.config = {
-      timeout: 60000,
-      retries: 5,
+      ...{
+        timeout: 60000,
+        retries: 5,
+      },
       ...config,
     };
 
@@ -51,7 +53,7 @@ export class SRIIntegration {
     });
 
     // Add authentication interceptor
-    this.client.interceptors.request.use((request) => {
+    this.client.interceptors.request.use((request: any) => {
       if (request.url) {
         const signature = this.generateSignature(
           request.url,

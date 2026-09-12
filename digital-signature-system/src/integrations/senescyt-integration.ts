@@ -34,8 +34,10 @@ export class SENESCYTIntegration {
 
   constructor(config: SENESCYTConfig) {
     this.config = {
-      timeout: 30000,
-      retries: 3,
+      ...{
+        timeout: 30000,
+        retries: 3,
+      },
       ...config,
     };
 
@@ -45,7 +47,7 @@ export class SENESCYTIntegration {
     });
 
     // Add request interceptor for authentication
-    this.client.interceptors.request.use((request) => {
+    this.client.interceptors.request.use((request: any) => {
       if (request.url) {
         const signature = this.generateSignature(request.url, request.data);
         request.headers['X-API-Key'] = this.config.apiKey;
