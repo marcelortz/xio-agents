@@ -1,1 +1,1 @@
-web: node simple.js
+web: node dist/api/minimal-server.js
