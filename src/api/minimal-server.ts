@@ -1,10 +1,14 @@
 import express from 'express';
+import path from 'path';
 import { OptimizationEndpoints } from './optimization-endpoints';
 
 const app = express();
 const port = parseInt(process.env.PORT || '3000', 10);
 
 app.use(express.json({ limit: '10mb' }));
+
+// Serve static files (dashboard)
+app.use(express.static(path.join(__dirname, '../../')));
 
 app.get('/health', (req, res) => {
   res.json({
