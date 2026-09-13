@@ -42,8 +42,12 @@ export class MLOptimizationAPI {
     this.app.use(express.json({ limit: '10mb' }));
     this.app.use(express.urlencoded({ limit: '10mb', extended: true }));
 
-    // Serve static files (dashboard)
-    this.app.use(express.static('public'));
+    // Serve static files (dashboard) - only if public directory exists
+    try {
+      this.app.use(express.static('public'));
+    } catch (err) {
+      console.warn('Public directory not found, skipping static files');
+    }
 
     // CORS middleware
     this.app.use((req, res, next) => {
@@ -392,6 +396,24 @@ export class MLOptimizationAPI {
 // Start server if running directly
 if (require.main === module) {
   const port = parseInt(process.env.PORT || '3000', 10);
-  const api = new MLOptimizationAPI(port);
-  api.start();
+  console.log(`Starting server on port ${port}...`);
+
+  try {
+    const api = new MLOptimizationAPI(port);
+    api.start();
+  } catch (err) {
+    console.error('Failed to start server:', err);
+    process.exit(1);
+  }
+
+  // Handle uncaught exceptions
+  process.on('uncaughtException', (err) => {
+    console.error('Uncaught Exception:', err);
+    process.exit(1);
+  });
+
+  process.on('unhandledRejection', (reason) => {
+    console.error('Unhandled Rejection:', reason);
+    process.exit(1);
+  });
 }
