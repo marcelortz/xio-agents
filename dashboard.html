@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>XIO Agents Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+        }
+
+        .card h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.3em;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #555;
+            font-weight: 500;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 1em;
+            transition: border-color 0.3s;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(102, 126, 234, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .status {
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            font-weight: 500;
+        }
+
+        .status.healthy {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .status.loading {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        .result-box {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 6px;
+            border-left: 4px solid #667eea;
+            margin-top: 15px;
+            max-height: 300px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+
+        .algorithms-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .algo-item {
+            padding: 12px;
+            background: #f8f9fa;
+            border-radius: 6px;
+            border-left: 4px solid #667eea;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .algo-item:hover {
+            background: #e9ecef;
+            transform: translateX(4px);
+        }
+
+        .algo-item.selected {
+            background: #d1ecf1;
+            border-left-color: #0c5460;
+        }
+
+        .algo-name {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 4px;
+        }
+
+        .algo-desc {
+            font-size: 0.85em;
+            color: #666;
+        }
+
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        .comparison-table th,
+        .comparison-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .comparison-table th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .comparison-table tr:hover {
+            background: #f8f9fa;
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .metric {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .metric:last-child {
+            border-bottom: none;
+        }
+
+        .metric-label {
+            font-weight: 600;
+            color: #555;
+        }
+
+        .metric-value {
+            color: #667eea;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🧠 XIO Agents Dashboard</h1>
+            <p>ML Optimization Algorithm Benchmark & Testing Platform</p>
+        </header>
+
+        <div class="grid">
+            <!-- Left Column: Controls -->
+            <div>
+                <!-- API Status -->
+                <div class="card">
+                    <h2>API Status</h2>
+                    <div id="apiStatus" class="status loading">
+                        <span class="loading-spinner"></span>Checking...
+                    </div>
+                    <div id="apiInfo"></div>
+                </div>
+
+                <!-- Algorithm Selection -->
+                <div class="card" style="margin-top: 20px;">
+                    <h2>Select Algorithm</h2>
+                    <div id="algorithmsList" class="algorithms-grid"></div>
+                </div>
+            </div>
+
+            <!-- Right Column: Configuration & Results -->
+            <div>
+                <!-- Configuration -->
+                <div class="card">
+                    <h2>Configuration</h2>
+
+                    <div class="form-group">
+                        <label for="dimension">Problem Dimension:</label>
+                        <input type="number" id="dimension" value="10" min="1" max="100">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="iterations">Max Iterations:</label>
+                        <input type="number" id="iterations" value="100" min="10" max="1000">
+                    </div>
+
+                    <div id="parameterFields"></div>
+
+                    <button onclick="runOptimization()">Run Optimization</button>
+                </div>
+
+                <!-- Results -->
+                <div class="card" style="margin-top: 20px;">
+                    <h2>Results</h2>
+                    <div id="results" class="result-box">Select an algorithm and click "Run Optimization" to see results...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Comparison Section -->
+        <div class="card">
+            <h2>Algorithm Comparison</h2>
+            <button onclick="runComparison()">Compare All Algorithms</button>
+            <div id="comparisonResults"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:3002';
+        let selectedAlgorithm = 'genetic';
+        let algorithms = [];
+
+        // Initialize
+        window.addEventListener('load', () => {
+            checkAPIStatus();
+            loadAlgorithms();
+        });
+
+        // Check API Status
+        async function checkAPIStatus() {
+            try {
+                const response = await fetch(`${API_URL}/health`);
+                const data = await response.json();
+
+                const statusEl = document.getElementById('apiStatus');
+                statusEl.className = 'status healthy';
+                statusEl.innerHTML = `✅ API Healthy - Port ${data.port}`;
+
+                const infoEl = document.getElementById('apiInfo');
+                infoEl.innerHTML = `
+                    <div class="metric">
+                        <span class="metric-label">Timestamp:</span>
+                        <span class="metric-value">${new Date(data.timestamp).toLocaleString()}</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Environment:</span>
+                        <span class="metric-value">${data.env || 'development'}</span>
+                    </div>
+                `;
+            } catch (error) {
+                document.getElementById('apiStatus').className = 'status error';
+                document.getElementById('apiStatus').innerHTML = `❌ API Unavailable - ${error.message}`;
+            }
+        }
+
+        // Load Available Algorithms
+        async function loadAlgorithms() {
+            try {
+                const response = await fetch(`${API_URL}/api/algorithms`);
+                const data = await response.json();
+                algorithms = data.algorithms;
+
+                const list = document.getElementById('algorithmsList');
+                list.innerHTML = algorithms.map(algo => `
+                    <div class="algo-item ${algo.name === selectedAlgorithm ? 'selected' : ''}" onclick="selectAlgorithm('${algo.name}')">
+                        <div class="algo-name">${algo.name.toUpperCase()}</div>
+                        <div class="algo-desc">${algo.description}</div>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('Failed to load algorithms:', error);
+            }
+        }
+
+        // Select Algorithm
+        function selectAlgorithm(name) {
+            selectedAlgorithm = name;
+            loadAlgorithms();
+            updateParameterFields();
+        }
+
+        // Update Parameter Fields
+        function updateParameterFields() {
+            const algo = algorithms.find(a => a.name === selectedAlgorithm);
+            const container = document.getElementById('parameterFields');
+
+            if (!algo || !algo.params) {
+                container.innerHTML = '';
+                return;
+            }
+
+            container.innerHTML = algo.params.map(param => `
+                <div class="form-group">
+                    <label for="param_${param}">${param}:</label>
+                    <input type="number" id="param_${param}" step="0.01" value="${getDefaultValue(param)}">
+                </div>
+            `).join('');
+        }
+
+        // Get Default Parameter Values
+        function getDefaultValue(param) {
+            const defaults = {
+                'populationSize': 30,
+                'mutationRate': 0.1,
+                'crossoverRate': 0.8,
+                'maxGenerations': 50,
+                'numParticles': 20,
+                'maxIterations': 100,
+                'inertiaWeight': 0.7,
+                'cognitiveFactor': 1.5,
+                'socialFactor': 1.5,
+                'initialTemp': 100,
+                'coolingRate': 0.95,
+                'numAnts': 30,
+                'evaporationRate': 0.1,
+                'F': 0.8,
+                'CR': 0.9,
+                'harmonyMemorySize': 20,
+                'harmonicMemoryConsiderationRate': 0.9,
+                'tabuListSize': 50
+            };
+            return defaults[param] || 50;
+        }
+
+        // Run Optimization
+        async function runOptimization() {
+            const dimension = parseInt(document.getElementById('dimension').value);
+            const iterations = parseInt(document.getElementById('iterations').value);
+
+            if (!dimension || !iterations) {
+                alert('Please fill in all fields');
+                return;
+            }
+
+            const algo = algorithms.find(a => a.name === selectedAlgorithm);
+            const parameters = {};
+
+            if (algo && algo.params) {
+                algo.params.forEach(param => {
+                    const value = document.getElementById(`param_${param}`).value;
+                    if (value) parameters[param] = parseFloat(value);
+                });
+            }
+
+            const resultsEl = document.getElementById('results');
+            resultsEl.innerHTML = '<span class="loading-spinner"></span>Running optimization...';
+
+            try {
+                const response = await fetch(`${API_URL}/api/optimize`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        algorithm: selectedAlgorithm,
+                        dimension: dimension,
+                        maxIterations: iterations,
+                        parameters: parameters
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    resultsEl.innerHTML = JSON.stringify(result, null, 2);
+                } else {
+                    resultsEl.innerHTML = `Error: ${result.error}`;
+                }
+            } catch (error) {
+                resultsEl.innerHTML = `Failed to run optimization: ${error.message}`;
+            }
+        }
+
+        // Run Comparison
+        async function runComparison() {
+            const dimension = parseInt(document.getElementById('dimension').value);
+            const iterations = parseInt(document.getElementById('iterations').value);
+
+            if (!dimension || !iterations) {
+                alert('Please fill in dimension and iterations');
+                return;
+            }
+
+            const comparisonEl = document.getElementById('comparisonResults');
+            comparisonEl.innerHTML = '<span class="loading-spinner"></span>Comparing algorithms...';
+
+            try {
+                const response = await fetch(`${API_URL}/api/optimize/compare`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        dimension: dimension,
+                        iterations: iterations
+                    })
+                });
+
+                const result = await response.json();
+
+                let html = `<table class="comparison-table"><tr><th>Algorithm</th><th>Fitness</th><th>Duration (ms)</th><th>Status</th></tr>`;
+
+                for (const [algo, data] of Object.entries(result.results || {})) {
+                    html += `<tr>
+                        <td><strong>${algo}</strong></td>
+                        <td>${data.fitness ? data.fitness.toFixed(6) : 'N/A'}</td>
+                        <td>${data.duration || 'N/A'}</td>
+                        <td>${data.success ? '✅' : '❌'}</td>
+                    </tr>`;
+                }
+
+                html += `</table>`;
+                html += `<div class="metric"><span class="metric-label">Total Comparison Time:</span><span class="metric-value">${result.totalDuration}ms</span></div>`;
+
+                comparisonEl.innerHTML = html;
+            } catch (error) {
+                comparisonEl.innerHTML = `Failed to run comparison: ${error.message}`;
+            }
+        }
+
+        // Initial setup
+        updateParameterFields();
+    </script>
+</body>
+</html>
