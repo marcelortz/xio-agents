@@ -391,6 +391,7 @@ export class MLOptimizationAPI {
 
 // Start server if running directly
 if (require.main === module) {
-  const api = new MLOptimizationAPI(3000);
+  const port = parseInt(process.env.PORT || '3000', 10);
+  const api = new MLOptimizationAPI(port);
   api.start();
 }
